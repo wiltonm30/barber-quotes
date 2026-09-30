@@ -5,12 +5,12 @@ import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.2/firebas
 import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 export const firebaseConfig = {
-  apiKey: 'TU_API_KEY',
-  authDomain: 'TU_PROYECTO.firebaseapp.com',
-  projectId: 'TU_PROYECTO',
-  storageBucket: 'TU_PROYECTO.appspot.com',
-  messagingSenderId: '000000000000',
-  appId: '1:000000000000:web:xxxxxxxxxxxx',
+  apiKey: 'AIzaSyDFObqhnox8nm5ciNZdXz0Y-AQABvXOfrY',
+  authDomain: 'barber-quotes.firebaseapp.com',
+  projectId: 'barber-quotes',
+  storageBucket: 'barber-quotes.firebasestorage.app',
+  messagingSenderId: '127208445346',
+  appId: '1:127208445346:web:aa371c85039123ec008efb',
 };
 
 const app = initializeApp(firebaseConfig);
