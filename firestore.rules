@@ -1,0 +1,74 @@
+rules_version = '2';
+// BarberQuotes — reglas de seguridad
+// Roles (colección "cuentas", ID = UID de Auth):
+//   admin   → ve y gestiona todo
+//   barbero → solo ve y gestiona SUS citas (el ID de su doc en "barberos" es su UID)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function path(col, id) { return /databases/$(database)/documents/$(col)/$(id); }
+    function logueado() { return request.auth != null; }
+    function tieneCuenta() { return logueado() && exists(path('cuentas', request.auth.uid)); }
+    function rol() { return get(path('cuentas', request.auth.uid)).data.rol; }
+
+    function isAdmin() { return tieneCuenta() && rol() == 'admin'; }
+    function isBarbero() {
+      return tieneCuenta() && rol() == 'barbero'
+        && exists(path('barberos', request.auth.uid))
+        && get(path('barberos', request.auth.uid)).data.activo == true;
+    }
+    function esSuyo(barberoId) { return isBarbero() && barberoId == request.auth.uid; }
+
+    // Datos públicos del negocio
+    match /config/{id}    { allow read: if true; allow write: if isAdmin(); }
+    match /servicios/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /barberos/{id}  { allow read: if true; allow write: if isAdmin(); }
+
+    // Cuentas de acceso: cada quien lee la suya; solo el admin las crea o edita
+    match /cuentas/{uid} {
+      allow read: if isAdmin() || (logueado() && request.auth.uid == uid);
+      allow write: if isAdmin();
+    }
+
+    // Citas: el cliente crea; cada barbero ve solo las suyas; el admin ve todo
+    match /citas/{citaId} {
+      allow read: if isAdmin() || esSuyo(resource.data.barberoId);
+      allow update: if (isAdmin() || esSuyo(resource.data.barberoId))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado'])
+        && request.resource.data.estado in ['pendiente', 'confirmada', 'completada', 'cancelada'];
+      allow delete: if isAdmin();
+      allow create: if citaValida(request.resource.data);
+    }
+
+    function citaValida(d) {
+      let s = get(path('servicios', d.servicioId)).data;
+      let b = get(path('barberos', d.barberoId)).data;
+      return d.keys().hasOnly(['fecha', 'hora', 'barberoId', 'barbero', 'servicioId', 'servicio',
+                               'precio', 'duracion', 'cliente', 'telefono', 'estado', 'creado'])
+        && d.keys().hasAll(['fecha', 'hora', 'barberoId', 'servicioId', 'cliente', 'telefono'])
+        && d.estado == 'pendiente'
+        && d.creado == request.time
+        && d.fecha.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && d.hora.matches('^[0-9]{2}:[0-9]{2}$')
+        && d.cliente is string && d.cliente.size() >= 2 && d.cliente.size() <= 60
+        && d.telefono.matches('^1[0-9]{10}$')
+        && b.activo == true
+        && d.barbero == b.nombre
+        && d.servicio == s.nombre && d.precio == s.precio && d.duracion == s.duracion
+        && existsAfter(path('slots', d.barberoId + '_' + d.fecha + '_' + d.hora.replace(':', '')));
+    }
+
+    // Bloques ocupados: públicos y sin datos personales. Solo se crean, nunca se sobrescriben.
+    match /slots/{id} {
+      allow read: if true;
+      allow update: if false;
+      allow delete: if isAdmin() || esSuyo(resource.data.barberoId);
+      allow create: if request.resource.data.keys().hasOnly(['barberoId', 'fecha', 'hora', 'citaId'])
+        && id == request.resource.data.barberoId + '_' + request.resource.data.fecha + '_'
+                 + request.resource.data.hora.replace(':', '')
+        && existsAfter(path('citas', request.resource.data.citaId))
+        && getAfter(path('citas', request.resource.data.citaId)).data.barberoId == request.resource.data.barberoId
+        && getAfter(path('citas', request.resource.data.citaId)).data.fecha == request.resource.data.fecha;
+    }
+  }
+}

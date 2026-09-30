@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>BarberQuotes, panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EEF1F4; --surface: #FFFFFF; --ink: #17233A; --muted: #5B6679; --line: #D5DBE3;
+    --red: #C8322B; --blue: #2A5DA8; --green: #1F8B4C;
+    --display: 'Big Shoulders Display', 'Arial Narrow', Impact, sans-serif;
+    --body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --pole: repeating-linear-gradient(-45deg, var(--red) 0 14px, #fff 14px 22px, var(--blue) 22px 36px, #fff 36px 44px);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: var(--body); background: var(--paper); color: var(--ink); line-height: 1.5; }
+  button, input, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  .pole { height: 10px; background: var(--pole); }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+  h1 { font-family: var(--display); font-weight: 800; font-size: 44px; line-height: .95; }
+  .muted { color: var(--muted); }
+
+  .login { max-width: 360px; margin: 12vh auto 0; padding: 0 20px; }
+  .login input { width: 100%; padding: 14px; border: 2px solid var(--line); border-radius: 8px; margin: 16px 0 10px; font-size: 20px; letter-spacing: .3em; text-align: center; }
+  .btn { padding: 12px 18px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-weight: 700; cursor: pointer; }
+  .btn.full { width: 100%; }
+  .error { color: var(--red); font-weight: 600; }
+
+  .top { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; }
+  .controles { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 20px 0; }
+  .controles input, .controles select { padding: 10px 12px; border: 2px solid var(--line); border-radius: 8px; background: var(--surface); }
+  .nav { width: 44px; padding: 10px 0; border: 2px solid var(--line); border-radius: 8px; background: var(--surface); cursor: pointer; font-weight: 700; }
+
+  .totales { display: flex; gap: 28px; flex-wrap: wrap; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+  .totales div { font-size: 14px; color: var(--muted); }
+  .totales b { display: block; font-family: var(--display); font-size: 32px; color: var(--ink); line-height: 1; }
+
+  .cita { display: grid; grid-template-columns: 90px 1fr auto; gap: 16px; align-items: center; background: var(--surface); padding: 14px 16px; border-radius: 10px; border-left: 6px solid var(--line); margin-bottom: 8px; }
+  .cita.pendiente { border-left-color: #D99A1E; }
+  .cita.confirmada { border-left-color: var(--blue); }
+  .cita.completada { border-left-color: var(--green); }
+  .cita.cancelada { opacity: .5; }
+  .cita.cancelada .info strong { text-decoration: line-through; }
+  .hora { font-family: var(--display); font-size: 26px; font-weight: 800; line-height: 1; }
+  .hora small { display: block; font-family: var(--body); font-size: 13px; color: var(--muted); font-weight: 500; margin-top: 4px; }
+  .info strong { display: block; }
+  .info span { font-size: 14px; color: var(--muted); }
+  .estado { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 10px; border-radius: 999px; background: var(--paper); margin-top: 4px; }
+  .acciones { display: flex; gap: 6px; flex-wrap: wrap; justify-content: end; }
+  .acc { padding: 8px 12px; border-radius: 8px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; }
+  .acc.wa { border-color: var(--green); color: var(--green); }
+  .acc.no { color: var(--red); }
+  .vacio { padding: 40px 0; text-align: center; color: var(--muted); }
+
+  @media (max-width: 640px) {
+    .cita { grid-template-columns: 70px 1fr; }
+    .acciones { grid-column: 1 / -1; justify-content: start; }
+  }
+  .login input { letter-spacing: normal; text-align: left; font-size: 16px; margin: 0 0 10px; }
+  .login p.muted { margin-bottom: 16px; }
+  .tabs { display: flex; gap: 4px; margin-top: 20px; border-bottom: 2px solid var(--line); }
+  .tab { padding: 10px 16px; border: 0; background: none; font-weight: 700; cursor: pointer; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--red); }
+
+  .bloque { background: var(--surface); border-radius: 10px; padding: 20px; margin-top: 20px; }
+  .bloque h2 { font-family: var(--display); font-size: 28px; line-height: 1; margin-bottom: 14px; }
+  .fila { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; padding: 12px 0; border-top: 1px solid var(--line); }
+  .fila:first-of-type { border-top: 0; }
+  .fila label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .fila input, .fila select { padding: 9px 10px; border: 2px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font-weight: 500; }
+  .fila input:focus { border-color: var(--blue); outline: none; }
+  .w-lg { width: 200px; } .w-md { width: 140px; } .w-sm { width: 90px; }
+  .diasSel { display: flex; gap: 4px; }
+  .diasSel label { display: block; }
+  .diasSel input { position: absolute; opacity: 0; }
+  .diasSel span { display: grid; place-items: center; width: 34px; height: 38px; border: 2px solid var(--line); border-radius: 8px; cursor: pointer; font-weight: 700; color: var(--ink); }
+  .diasSel input:checked + span { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .diasSel input:focus-visible + span { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .check { display: flex !important; align-items: center; gap: 6px; padding-bottom: 10px; }
+  .guardado { color: var(--green); font-weight: 600; font-size: 14px; }
+  .marca { font-family: var(--display); font-weight: 800; font-size: 56px; line-height: .9; }
+  .nuevo { background: var(--paper); border-radius: 10px; padding: 4px 16px 16px; margin-top: 16px; }
+  .nuevo h3 { font-size: 16px; margin: 12px 0 0; }
+  .email { font-size: 14px; color: var(--muted); padding-bottom: 10px; }
+  .fila .btn, .fila .acc { margin-bottom: 1px; }
+</style>
+</head>
+<body>
+<div class="pole" aria-hidden="true"></div>
+
+<div class="login" id="vistaLogin">
+  <p class="marca">BarberQuotes</p>
+  <p class="muted" style="margin-top:8px">Entra con tu cuenta de administrador o de barbero.</p>
+  <input id="email" type="email" autocomplete="username" placeholder="Correo" aria-label="Correo">
+  <input id="clave" type="password" autocomplete="current-password" placeholder="Contraseña" aria-label="Contraseña">
+  <button class="btn full" id="btnEntrar">Entrar</button>
+  <p class="error" id="errLogin" role="alert" hidden></p>
+</div>
+
+<div class="wrap" id="vistaPanel" hidden>
+  <div class="top">
+    <div>
+      <h1 id="titulo">Citas</h1>
+      <p class="muted" id="fechaTxt"></p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="acc" id="btnMiLink" hidden>Copiar mi link</button>
+      <button class="acc" id="btnSalir">Salir</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist" id="tabs" hidden>
+    <button class="tab" role="tab" aria-selected="true" data-tab="tabCitas">Citas</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="tabAjustes">Ajustes</button>
+  </div>
+
+  <div id="tabCitas">
+    <div class="controles">
+      <button class="nav" id="prev" aria-label="Día anterior">‹</button>
+      <input type="date" id="fecha" aria-label="Fecha">
+      <button class="nav" id="next" aria-label="Día siguiente">›</button>
+      <button class="acc" id="btnHoy">Hoy</button>
+      <select id="filtroBarbero" aria-label="Filtrar por barbero" hidden></select>
+    </div>
+    <div class="totales" id="totales"></div>
+    <div id="lista"></div>
+  </div>
+
+  <div id="tabAjustes" hidden>
+    <div class="bloque">
+      <h2>Negocio</h2>
+      <div class="fila">
+        <label>Nombre de la barbería<input id="cfgNombre" class="w-lg"></label>
+        <label>WhatsApp del negocio<input id="cfgWa" class="w-md" inputmode="numeric" placeholder="8095551234"></label>
+        <label>Intervalo (min)<select id="cfgIntervalo" class="w-sm"><option>10</option><option>15</option><option>20</option><option>30</option></select></label>
+        <label>Días para reservar<input id="cfgDias" class="w-sm" type="number" min="1" max="60"></label>
+        <button class="btn" id="btnCfg">Guardar</button>
+        <span class="guardado" id="okCfg"></span>
+      </div>
+    </div>
+
+    <div class="bloque">
+      <h2>Servicios</h2>
+      <div id="listaServicios"></div>
+      <button class="acc" id="addServicio" style="margin-top:12px">Agregar servicio</button>
+    </div>
+
+    <div class="bloque">
+      <h2>Barberos</h2>
+      <p class="muted" style="margin-bottom:8px">Cada barbero entra a este panel con su correo y solo ve sus propias citas.</p>
+      <div id="listaBarberos"></div>
+
+      <div class="nuevo">
+        <h3>Nuevo barbero</h3>
+        <div class="fila" style="border:0">
+          <label>Nombre<input id="nbNombre" class="w-md" placeholder="Carlos"></label>
+          <label>WhatsApp<input id="nbTel" class="w-md" inputmode="numeric" placeholder="8095551234"></label>
+          <label>Correo para entrar<input id="nbEmail" class="w-lg" type="email" autocomplete="off"></label>
+          <label>Contraseña temporal<input id="nbClave" class="w-md" type="text" autocomplete="off" placeholder="Mínimo 6"></label>
+        </div>
+        <div class="fila" style="border:0;padding-top:0" id="nbHorario"></div>
+        <button class="btn" id="btnCrearBarbero">Crear barbero</button>
+        <span class="guardado" id="okNuevo"></span>
+        <p class="error" id="errNuevo" role="alert" hidden></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { db, auth, firebaseConfig, FS, AUTH, APP, hoyRD, sumarDias, fechaLarga, hora12, dinero, esc } from './firebase.js';
+const {
+  doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, updateDoc, collection, query, where, onSnapshot, writeBatch,
+} = await import(FS);
+const {
+  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut,
+} = await import(AUTH);
+const { initializeApp, deleteApp } = await import(APP);
+
+const $ = (id) => document.getElementById(id);
+const LETRAS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+const NOMBRES_DIA = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const normalizarTel = (t) => { const d = String(t).replace(/\D/g, ''); return d.length === 10 ? `1${d}` : d; };
+const avisar = (el, txt = 'Guardado') => { el.textContent = txt; setTimeout(() => (el.textContent = ''), 2200); };
+const linkBarbero = (id) => new URL(`index.html?barbero=${id}`, location.href).href;
+
+const sesion = { uid: null, rol: null, nombre: '' };
+let negocio = {};
+let barberos = [];
+let citas = [];
+let cancelarEscucha = null;
+
+// ---------- Sesión y roles ----------
+$('btnEntrar').addEventListener('click', async () => {
+  $('errLogin').hidden = true;
+  try {
+    await signInWithEmailAndPassword(auth, $('email').value.trim(), $('clave').value);
+  } catch {
+    mostrarErrorLogin('Correo o contraseña incorrectos.');
+  }
+});
+$('clave').addEventListener('keydown', (e) => e.key === 'Enter' && $('btnEntrar').click());
+$('btnSalir').addEventListener('click', () => signOut(auth));
+
+function mostrarErrorLogin(msg) { $('errLogin').textContent = msg; $('errLogin').hidden = false; }
+
+onAuthStateChanged(auth, async (user) => {
+  if (cancelarEscucha) { cancelarEscucha(); cancelarEscucha = null; }
+  if (!user) { $('vistaPanel').hidden = true; $('vistaLogin').hidden = false; return; }
+
+  const cuenta = (await getDoc(doc(db, 'cuentas', user.uid))).data();
+  const cfg = (await getDoc(doc(db, 'config', 'negocio'))).data() || {};
+  negocio = cfg;
+
+  if (cuenta?.rol === 'barbero') {
+    const b = (await getDoc(doc(db, 'barberos', user.uid))).data();
+    if (!b?.activo) { mostrarErrorLogin('Tu cuenta está desactivada. Habla con el administrador.'); return signOut(auth); }
+    Object.assign(sesion, { uid: user.uid, rol: 'barbero', nombre: b.nombre });
+  } else if (cuenta?.rol === 'admin') {
+    Object.assign(sesion, { uid: user.uid, rol: 'admin', nombre: '' });
+  } else {
+    mostrarErrorLogin('Esta cuenta no tiene acceso a BarberQuotes.');
+    return signOut(auth);
+  }
+
+  const esAdmin = sesion.rol === 'admin';
+  $('tabs').hidden = !esAdmin;
+  $('filtroBarbero').hidden = !esAdmin;
+  $('btnMiLink').hidden = esAdmin;
+  $('titulo').textContent = esAdmin ? (negocio.nombre || 'BarberQuotes') : `Citas de ${sesion.nombre}`;
+  $('vistaLogin').hidden = true; $('vistaPanel').hidden = false;
+
+  if (esAdmin) await cargarAjustes();
+  $('fecha').value = hoyRD();
+  escucharCitas();
+});
+
+$('btnMiLink').addEventListener('click', () => copiar(linkBarbero(sesion.uid), $('btnMiLink')));
+
+async function copiar(texto, boton) {
+  try {
+    await navigator.clipboard.writeText(texto);
+    const t = boton.textContent; boton.textContent = 'Link copiado'; setTimeout(() => (boton.textContent = t), 1800);
+  } catch { prompt('Copia este link:', texto); }
+}
+
+// ---------- Pestañas ----------
+document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach((x) => {
+    x.setAttribute('aria-selected', x === t);
+    $(x.dataset.tab).hidden = x !== t;
+  });
+}));
+
+// ---------- Citas ----------
+function escucharCitas() {
+  if (cancelarEscucha) cancelarEscucha();
+  const fecha = $('fecha').value;
+  $('fechaTxt').textContent = fechaLarga(fecha);
+  $('lista').innerHTML = '<p class="vacio">Cargando citas…</p>';
+
+  // El barbero SOLO puede consultar sus citas (las reglas rechazan cualquier otra consulta)
+  const filtros = [where('fecha', '==', fecha)];
+  if (sesion.rol === 'barbero') filtros.push(where('barberoId', '==', sesion.uid));
+
+  cancelarEscucha = onSnapshot(query(collection(db, 'citas'), ...filtros), (snap) => {
+    citas = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => a.hora.localeCompare(b.hora));
+    pintarCitas();
+  }, () => { $('lista').innerHTML = '<p class="vacio error">No se pudieron cargar las citas.</p>'; });
+}
+
+function pintarCitas() {
+  const filtro = sesion.rol === 'admin' ? $('filtroBarbero').value : '';
+  const visibles = citas.filter((c) => !filtro || c.barberoId === filtro);
+  const activas = visibles.filter((c) => c.estado !== 'cancelada');
+  const suma = (arr) => arr.reduce((t, c) => t + Number(c.precio), 0);
+
+  $('totales').innerHTML = `
+    <div><b>${activas.length}</b>citas activas</div>
+    <div><b>${visibles.filter((c) => c.estado === 'pendiente').length}</b>sin confirmar</div>
+    <div><b>${dinero(suma(visibles.filter((c) => c.estado === 'completada')))}</b>completado</div>
+    <div><b>${dinero(suma(activas))}</b>esperado del día</div>`;
+
+  if (!visibles.length) { $('lista').innerHTML = '<p class="vacio">No hay citas este día.</p>'; return; }
+
+  const verBarbero = sesion.rol === 'admin';
+  $('lista').innerHTML = visibles.map((c) => {
+    const msg = `Hola ${c.cliente}, te confirmamos tu cita en ${negocio.nombre || 'la barbería'}:\n• ${c.servicio} con ${c.barbero}\n• ${fechaLarga(c.fecha)} a las ${hora12(c.hora)}\n¡Te esperamos!`;
+    const abierta = !['completada', 'cancelada'].includes(c.estado);
+    return `
+      <article class="cita ${c.estado}">
+        <div class="hora">${hora12(c.hora).replace(/ [ap]\. m\./, '')}<small>${c.hora < '12:00' ? 'a. m.' : 'p. m.'}, ${c.duracion} min</small></div>
+        <div class="info">
+          <strong>${esc(c.cliente)}</strong>
+          <span>${esc(c.servicio)}${verBarbero ? ` con ${esc(c.barbero)}` : ''}, ${dinero(c.precio)}</span><br>
+          <span class="estado">${c.estado}</span>
+        </div>
+        <div class="acciones">${abierta ? `
+          <a class="acc wa" href="https://wa.me/${c.telefono}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener" data-id="${c.id}" data-estado="confirmada">Confirmar por WhatsApp</a>
+          <button class="acc" data-id="${c.id}" data-estado="completada">Completada</button>
+          <button class="acc no" data-id="${c.id}" data-estado="cancelada">Cancelar</button>` : ''}
+        </div>
+      </article>`;
+  }).join('');
+}
+
+async function cambiarEstado(id, estado) {
+  const c = citas.find((x) => x.id === id);
+  if (estado === 'cancelada' && !confirm(`¿Cancelar la cita de ${c.cliente} a las ${hora12(c.hora)}? El horario quedará libre.`)) return;
+  try {
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'citas', id), { estado });
+    if (estado === 'cancelada') {
+      const slots = await getDocs(query(collection(db, 'slots'), where('citaId', '==', id)));
+      slots.forEach((s) => batch.delete(s.ref));
+    }
+    await batch.commit();
+  } catch {
+    alert('No se pudo actualizar la cita. Intenta de nuevo.');
+  }
+}
+
+$('lista').addEventListener('click', (e) => {
+  const el = e.target.closest('[data-estado]');
+  if (el) cambiarEstado(el.dataset.id, el.dataset.estado);
+});
+$('fecha').addEventListener('change', escucharCitas);
+$('prev').addEventListener('click', () => { $('fecha').value = sumarDias($('fecha').value, -1); escucharCitas(); });
+$('next').addEventListener('click', () => { $('fecha').value = sumarDias($('fecha').value, 1); escucharCitas(); });
+$('btnHoy').addEventListener('click', () => { $('fecha').value = hoyRD(); escucharCitas(); });
+$('filtroBarbero').addEventListener('change', pintarCitas);
+
+// ---------- Ajustes (solo admin) ----------
+async function cargarAjustes() {
+  const [bs, ss, cs] = await Promise.all([
+    getDocs(collection(db, 'barberos')), getDocs(collection(db, 'servicios')), getDocs(collection(db, 'cuentas')),
+  ]);
+  const emails = Object.fromEntries(cs.docs.map((d) => [d.id, d.data().email]));
+  barberos = bs.docs.map((d) => ({ id: d.id, ...d.data(), email: emails[d.id] || '' }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+  $('cfgNombre').value = negocio.nombre || '';
+  $('cfgWa').value = negocio.whatsapp || '';
+  $('cfgIntervalo').value = String(negocio.intervalo || 15);
+  $('cfgDias').value = negocio.diasAdelante || 14;
+
+  $('filtroBarbero').replaceChildren(new Option('Todos los barberos', ''), ...barberos.map((b) => new Option(b.nombre, b.id)));
+  $('listaServicios').replaceChildren(...ss.docs.map((d) => filaServicio({ id: d.id, ...d.data() })));
+  $('listaBarberos').replaceChildren(...barberos.map(filaBarbero));
+  if (!barberos.length) $('listaBarberos').innerHTML = '<p class="muted">Todavía no hay barberos. Crea el primero abajo.</p>';
+  $('nbHorario').innerHTML = camposHorario({});
+}
+
+$('btnCfg').addEventListener('click', async () => {
+  negocio = {
+    nombre: $('cfgNombre').value.trim() || 'Barbería',
+    whatsapp: normalizarTel($('cfgWa').value),
+    intervalo: Number($('cfgIntervalo').value),
+    diasAdelante: Math.min(60, Math.max(1, Number($('cfgDias').value) || 14)),
+  };
+  await setDoc(doc(db, 'config', 'negocio'), negocio);
+  $('titulo').textContent = negocio.nombre;
+  avisar($('okCfg'));
+});
+
+function filaServicio(s = {}) {
+  const f = document.createElement('div');
+  f.className = 'fila';
+  f.innerHTML = `
+    <label>Servicio<input class="w-lg" data-k="nombre" value="${esc(s.nombre)}" placeholder="Corte clásico"></label>
+    <label>Precio (RD$)<input class="w-sm" data-k="precio" type="number" min="0" value="${s.precio ?? ''}"></label>
+    <label>Duración (min)<input class="w-sm" data-k="duracion" type="number" min="5" step="5" value="${s.duracion ?? 30}"></label>
+    <button class="btn" data-guardar>Guardar</button>
+    <button class="acc no" data-borrar>Eliminar</button>
+    <span class="guardado"></span>`;
+  const v = (k) => f.querySelector(`[data-k="${k}"]`).value;
+  f.querySelector('[data-guardar]').onclick = async () => {
+    const data = { nombre: v('nombre').trim(), precio: Number(v('precio')), duracion: Number(v('duracion')) };
+    if (!data.nombre || !data.duracion) return alert('Escribe el nombre y la duración del servicio.');
+    s.id ? await setDoc(doc(db, 'servicios', s.id), data) : (s.id = (await addDoc(collection(db, 'servicios'), data)).id);
+    avisar(f.querySelector('.guardado'));
+  };
+  f.querySelector('[data-borrar]').onclick = async () => {
+    if (!confirm('¿Eliminar este servicio?')) return;
+    if (s.id) await deleteDoc(doc(db, 'servicios', s.id));
+    f.remove();
+  };
+  return f;
+}
+
+// Campos de horario compartidos entre "nuevo barbero" y "editar barbero"
+const camposHorario = (b) => {
+  const dias = b.dias || [1, 2, 3, 4, 5, 6];
+  return `
+    <label>Entra<input data-k="horaInicio" type="time" value="${b.horaInicio || '09:00'}"></label>
+    <label>Sale<input data-k="horaFin" type="time" value="${b.horaFin || '19:00'}"></label>
+    <div><span style="font-size:13px;font-weight:600;color:var(--muted)">Días</span>
+      <div class="diasSel">${LETRAS.map((l, i) => `<label><input type="checkbox" value="${i}" ${dias.includes(i) ? 'checked' : ''} aria-label="${NOMBRES_DIA[i]}"><span>${l}</span></label>`).join('')}</div>
+    </div>`;
+};
+
+const leerHorario = (cont) => {
+  const q = (k) => cont.querySelector(`[data-k="${k}"]`).value;
+  return {
+    horaInicio: q('horaInicio'), horaFin: q('horaFin'),
+    dias: [...cont.querySelectorAll('.diasSel input:checked')].map((x) => Number(x.value)),
+  };
+};
+
+function filaBarbero(b) {
+  const f = document.createElement('div');
+  f.className = 'fila';
+  f.innerHTML = `
+    <label>Nombre<input class="w-md" data-k="nombre" value="${esc(b.nombre)}"></label>
+    <label>WhatsApp<input class="w-md" data-k="telefono" inputmode="numeric" value="${esc(b.telefono)}"></label>
+    ${camposHorario(b)}
+    <label class="check"><input type="checkbox" data-k="activo" ${b.activo !== false ? 'checked' : ''}> Activo</label>
+    <span class="email" style="flex-basis:100%">${esc(b.email) || 'Sin cuenta de acceso'}</span>
+    <button class="btn" data-guardar>Guardar</button>
+    <button class="acc" data-link>Copiar link</button>
+    ${b.email ? '<button class="acc" data-clave>Enviar cambio de contraseña</button>' : ''}
+    <button class="acc no" data-borrar>Eliminar</button>
+    <span class="guardado"></span>`;
+  const q = (k) => f.querySelector(`[data-k="${k}"]`);
+  const ok = f.querySelector('.guardado');
+
+  f.querySelector('[data-guardar]').onclick = async () => {
+    const data = { nombre: q('nombre').value.trim(), telefono: normalizarTel(q('telefono').value), ...leerHorario(f), activo: q('activo').checked };
+    if (!data.nombre) return alert('Escribe el nombre del barbero.');
+    if (data.horaFin <= data.horaInicio) return alert('La hora de salida debe ser después de la de entrada.');
+    await updateDoc(doc(db, 'barberos', b.id), data);
+    avisar(ok);
+  };
+  f.querySelector('[data-link]').onclick = (e) => copiar(linkBarbero(b.id), e.target);
+  const btnClave = f.querySelector('[data-clave]');
+  if (btnClave) btnClave.onclick = async () => {
+    try { await sendPasswordResetEmail(auth, b.email); avisar(ok, `Correo enviado a ${b.email}`); }
+    catch { alert('No se pudo enviar el correo.'); }
+  };
+  f.querySelector('[data-borrar]').onclick = async () => {
+    if (!confirm(`¿Eliminar a ${b.nombre}? Perderá el acceso al panel. Sus citas ya reservadas no se borran.`)) return;
+    const batch = writeBatch(db);
+    batch.delete(doc(db, 'barberos', b.id));
+    batch.delete(doc(db, 'cuentas', b.id));
+    await batch.commit();
+    f.remove();
+  };
+  return f;
+}
+
+// Crea la cuenta en una app secundaria para no cerrar la sesión del admin
+async function crearCuentaAuth(email, clave) {
+  const secundaria = initializeApp(firebaseConfig, `crear-${Date.now()}`);
+  try {
+    const cred = await createUserWithEmailAndPassword(getAuth(secundaria), email, clave);
+    return cred.user.uid;
+  } finally {
+    await deleteApp(secundaria);
+  }
+}
+
+const ERRORES_AUTH = {
+  'auth/email-already-in-use': 'Ese correo ya tiene una cuenta.',
+  'auth/invalid-email': 'El correo no es válido.',
+  'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+};
+
+$('btnCrearBarbero').addEventListener('click', async () => {
+  const btn = $('btnCrearBarbero');
+  const error = (m) => { $('errNuevo').textContent = m; $('errNuevo').hidden = false; };
+  $('errNuevo').hidden = true;
+
+  const nombre = $('nbNombre').value.trim();
+  const email = $('nbEmail').value.trim().toLowerCase();
+  const clave = $('nbClave').value;
+  const horario = leerHorario($('nbHorario'));
+  if (!nombre) return error('Escribe el nombre del barbero.');
+  if (!email) return error('Escribe el correo con el que va a entrar.');
+  if (clave.length < 6) return error('La contraseña temporal debe tener al menos 6 caracteres.');
+  if (horario.horaFin <= horario.horaInicio) return error('La hora de salida debe ser después de la de entrada.');
+
+  btn.disabled = true; btn.textContent = 'Creando…';
+  try {
+    const uid = await crearCuentaAuth(email, clave);
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'barberos', uid), { nombre, telefono: normalizarTel($('nbTel').value), ...horario, activo: true });
+    batch.set(doc(db, 'cuentas', uid), { rol: 'barbero', email, nombre });
+    await batch.commit();
+    ['nbNombre', 'nbTel', 'nbEmail', 'nbClave'].forEach((id) => ($(id).value = ''));
+    await cargarAjustes();
+    avisar($('okNuevo'), `${nombre} creado. Pásale su correo y contraseña temporal.`);
+  } catch (e) {
+    error(ERRORES_AUTH[e.code] || 'No se pudo crear el barbero. Intenta de nuevo.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Crear barbero';
+  }
+});
+</script>
+</body>
+</html>
